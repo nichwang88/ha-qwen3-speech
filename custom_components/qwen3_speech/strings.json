@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Qwen3 Speech",
+        "description": "Set up Qwen3 TTS & STT via DashScope API",
+        "data": {
+          "api_key": "DashScope API Key",
+          "voice": "Default TTS Voice"
+        },
+        "data_description": {
+          "api_key": "Your Alibaba Cloud DashScope API key (from https://bailian.console.aliyun.com)",
+          "voice": "Default voice for text-to-speech synthesis"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to DashScope API. Please check your network.",
+      "invalid_auth": "Invalid API key. Please check your DashScope API key.",
+      "unknown": "Unknown error. Check logs for details."
+    },
+    "abort": {
+      "already_configured": "This API key is already configured."
+    }
+  }
+}

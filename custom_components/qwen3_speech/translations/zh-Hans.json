@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "配置 Qwen3 语音服务",
+        "description": "通过 DashScope API 设置千问3语音合成与语音识别",
+        "data": {
+          "api_key": "DashScope API 密钥",
+          "voice": "默认 TTS 音色"
+        },
+        "data_description": {
+          "api_key": "阿里云百炼 DashScope API 密钥（从 https://bailian.console.aliyun.com 获取）",
+          "voice": "语音合成的默认音色"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "无法连接到 DashScope API，请检查网络连接",
+      "invalid_auth": "API 密钥无效，请检查 DashScope API 密钥是否正确",
+      "unknown": "未知错误，请查看日志获取详细信息"
+    },
+    "abort": {
+      "already_configured": "该 API 密钥已经配置过了"
+    }
+  }
+}
