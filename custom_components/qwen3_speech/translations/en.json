@@ -6,21 +6,54 @@
         "description": "Set up Qwen3 TTS & STT via DashScope API",
         "data": {
           "api_key": "DashScope API Key",
-          "voice": "Default TTS Voice"
+          "tts_model": "TTS Model",
+          "stt_model": "STT Model",
+          "voice": "Default Voice",
+          "speed": "Default Speed"
         },
         "data_description": {
           "api_key": "Your Alibaba Cloud DashScope API key (from https://bailian.console.aliyun.com)",
-          "voice": "Default voice for text-to-speech synthesis"
+          "tts_model": "TTS model name (e.g. qwen3-tts-flash)",
+          "stt_model": "STT model name (e.g. qwen3-asr-flash)",
+          "voice": "Default voice for text-to-speech synthesis",
+          "speed": "Speech speed multiplier (0.5 - 2.0, default 1.0)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect to DashScope API. Please check your network.",
+      "cannot_connect": "Cannot connect to DashScope API. Please check your network and model name.",
       "invalid_auth": "Invalid API key. Please check your DashScope API key.",
       "unknown": "Unknown error. Check logs for details."
     },
     "abort": {
       "already_configured": "This API key is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Qwen3 Speech Settings",
+        "description": "Modify Qwen3 TTS & STT settings",
+        "data": {
+          "api_key": "DashScope API Key",
+          "tts_model": "TTS Model",
+          "stt_model": "STT Model",
+          "voice": "Default Voice",
+          "speed": "Default Speed"
+        },
+        "data_description": {
+          "api_key": "Your Alibaba Cloud DashScope API key",
+          "tts_model": "TTS model name (e.g. qwen3-tts-flash)",
+          "stt_model": "STT model name (e.g. qwen3-asr-flash)",
+          "voice": "Default voice for text-to-speech synthesis",
+          "speed": "Speech speed multiplier (0.5 - 2.0, default 1.0)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to DashScope API. Please check your network and model name.",
+      "invalid_auth": "Invalid API key. Please check your DashScope API key.",
+      "unknown": "Unknown error. Check logs for details."
     }
   }
 }

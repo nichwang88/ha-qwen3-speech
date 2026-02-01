@@ -25,9 +25,10 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    ASR_MODEL,
     CONF_API_KEY,
+    CONF_STT_MODEL,
     DASHSCOPE_API_URL,
+    DEFAULT_STT_MODEL,
     DOMAIN,
     LANGUAGE_MAP,
     SUPPORT_LANGUAGES,
@@ -48,8 +49,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Qwen3 STT platform via config entry."""
-    api_key = config_entry.data[CONF_API_KEY]
-    async_add_entities([Qwen3STTEntity(hass, api_key, config_entry)])
+    async_add_entities([Qwen3STTEntity(hass, config_entry)])
 
 
 class Qwen3STTEntity(SpeechToTextEntity):
@@ -58,14 +58,21 @@ class Qwen3STTEntity(SpeechToTextEntity):
     def __init__(
         self,
         hass: HomeAssistant,
-        api_key: str,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize Qwen3 STT entity."""
         self.hass = hass
-        self._api_key = api_key
+        self._entry = config_entry
         self._attr_name = "Qwen3 STT"
         self._attr_unique_id = f"{DOMAIN}_stt_{config_entry.entry_id}"
+
+    @property
+    def _api_key(self) -> str:
+        return self._entry.data[CONF_API_KEY]
+
+    @property
+    def _stt_model(self) -> str:
+        return self._entry.data.get(CONF_STT_MODEL, DEFAULT_STT_MODEL)
 
     @property
     def supported_languages(self) -> list[str]:
@@ -127,7 +134,7 @@ class Qwen3STTEntity(SpeechToTextEntity):
         language_hint = metadata.language if metadata.language in LANGUAGE_MAP else "zh"
 
         payload = {
-            "model": ASR_MODEL,
+            "model": self._stt_model,
             "input": {
                 "messages": [
                     {"role": "system", "content": [{"text": ""}]},

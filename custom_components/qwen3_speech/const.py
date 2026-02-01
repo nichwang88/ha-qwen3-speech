@@ -7,20 +7,25 @@ DASHSCOPE_API_URL = (
     "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
 )
 
-# Models
-TTS_MODEL = "qwen3-tts-flash"
-ASR_MODEL = "qwen3-asr-flash"
-
 # Config keys
 CONF_API_KEY = "api_key"
+CONF_TTS_MODEL = "tts_model"
+CONF_STT_MODEL = "stt_model"
 CONF_VOICE = "voice"
-CONF_LANGUAGE = "language"
+CONF_SPEED = "speed"
 
 # Defaults
+DEFAULT_TTS_MODEL = "qwen3-tts-flash"
+DEFAULT_STT_MODEL = "qwen3-asr-flash"
 DEFAULT_VOICE = "Cherry"
 DEFAULT_LANGUAGE = "Auto"
+DEFAULT_SPEED = 1.0
 
-# Available voices (49 total)
+# Speed range
+MIN_SPEED = 0.5
+MAX_SPEED = 2.0
+
+# Available voices
 VOICES = [
     "Cherry",
     "Serena",
