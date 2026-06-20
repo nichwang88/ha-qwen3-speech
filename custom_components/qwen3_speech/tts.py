@@ -93,6 +93,34 @@ class Qwen3TTSEntity(TextToSpeechEntity):
         """Return default options."""
         return {CONF_VOICE: self._default_voice, CONF_SPEED: self._default_speed}
 
+    async def _transcode_to_mp3(self, audio: bytes) -> bytes | None:
+        """Transcode audio (WAV) to MP3 via ffmpeg for reliable AirPlay/HomePod streaming.
+
+        DashScope returns 24kHz WAV with a placeholder ~2GB RIFF size header; pyatv/HomePod
+        fails to init the decoder on such large WAV (audio >~5s), so re-encode to MP3.
+        """
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "ffmpeg", "-hide_banner", "-loglevel", "error",
+                "-i", "pipe:0", "-map_metadata", "-1", "-id3v2_version", "0", "-write_xing", "0",
+                "-codec:a", "libmp3lame", "-b:a", "64k", "-ac", "1", "-f", "mp3", "pipe:1",
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            out, err = await proc.communicate(input=audio)
+            if proc.returncode == 0 and out:
+                return out
+            _LOGGER.error(
+                "ffmpeg transcode failed (rc=%s): %s",
+                proc.returncode, err.decode("utf-8", "ignore")[:200],
+            )
+        except FileNotFoundError:
+            _LOGGER.error("ffmpeg not found; cannot transcode to MP3")
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.error("Transcode error: %s", err)
+        return None
+
     async def async_get_tts_audio(
         self, message: str, language: str, options: dict[str, Any]
     ) -> TtsAudioType:
@@ -186,6 +214,15 @@ class Qwen3TTSEntity(TextToSpeechEntity):
                         voice,
                         speed,
                     )
+                    if audio_format != "mp3":
+                        mp3 = await self._transcode_to_mp3(audio_data)
+                        if mp3:
+                            _LOGGER.debug(
+                                "Transcoded %s %d bytes -> mp3 %d bytes",
+                                audio_format, len(audio_data), len(mp3),
+                            )
+                            return "mp3", mp3
+                        _LOGGER.warning("MP3 transcode failed; returning original %s", audio_format)
                     return audio_format, audio_data
 
         except asyncio.TimeoutError:
