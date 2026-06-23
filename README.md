@@ -48,6 +48,7 @@
 | STT 模型 | 语音识别模型名称 | `qwen3-asr-flash` |
 | 默认音色 | TTS 默认使用的音色 | Cherry |
 | 默认语速 | TTS 默认语速倍率（0.5-2.0） | 1.0 |
+| 情感指令 instructions | 默认情感/风格指令（见下方「情感表达」）；留空=不启用，`auto`=按内容自动选 | （空） |
 
 4. 提交后自动创建 TTS 和 STT 两个实体
 
@@ -82,6 +83,48 @@ data:
     voice: "Ethan"
     speed: 1.5
 ```
+
+### 情感表达（instructions）
+
+需要把 **TTS 模型**设为支持指令控制的 **instruct 模型**（如 `qwen3-tts-instruct-flash`），然后通过 `instructions` 选项用自然语言描述语气/情感。
+
+显式指定情感：
+
+```yaml
+service: tts.speak
+target:
+  entity_id: tts.qwen3_tts
+data:
+  message: "晚上好，先生。"
+  options:
+    voice: "Chelsie"
+    instructions: "用温柔、平静的语气说话"
+```
+
+**内容感知自动情感**——把 `instructions` 设为 `auto`（或在集成配置里把「情感指令」填 `auto`），集成会**根据播报文本内容自动选择情感**：
+
+```yaml
+service: tts.speak
+target:
+  entity_id: tts.qwen3_tts
+data:
+  message: "早上好，主人。今天有雨，记得带伞。"   # 含"雨" → 自动用"温柔治愈"语气
+  options:
+    instructions: "auto"
+```
+
+自动情感规则（按优先级，见 `const.py` 的 `AUTO_EMOTION_RULES`，可自行增改）：
+
+| 内容信号 | 情感语气 |
+|---|---|
+| 低电量/警告/故障/紧急/危险 | 沉稳、严肃 |
+| 生日/节日/恭喜/新年/春节… | 开朗、喜悦 |
+| 晚安/夜晚/傍晚/睡前 | 温柔、平静 |
+| 雨/雪/阴/降温/雾霾/台风 | 温柔、治愈 |
+| 晴/阳光/早上好/多云 | 温暖、有活力 |
+| 其它（默认） | 温柔、自然 |
+
+> 说明：仅 instruct 模型（模型名含 `instruct`）会发送 `instructions`；普通 `qwen3-tts-flash` 会忽略此选项，行为不变。情感对整段文本统一生效。
 
 ### 语音识别（STT）
 

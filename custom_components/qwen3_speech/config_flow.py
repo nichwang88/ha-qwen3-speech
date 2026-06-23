@@ -15,11 +15,13 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     CONF_API_KEY,
+    CONF_INSTRUCTIONS,
     CONF_SPEED,
     CONF_STT_MODEL,
     CONF_TTS_MODEL,
     CONF_VOICE,
     DASHSCOPE_API_URL,
+    DEFAULT_INSTRUCTIONS,
     DEFAULT_SPEED,
     DEFAULT_STT_MODEL,
     DEFAULT_TTS_MODEL,
@@ -41,6 +43,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_SPEED, default=DEFAULT_SPEED): vol.All(
             vol.Coerce(float), vol.Range(min=MIN_SPEED, max=MAX_SPEED)
         ),
+        vol.Optional(CONF_INSTRUCTIONS, default=DEFAULT_INSTRUCTIONS): str,
     }
 )
 
@@ -193,6 +196,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ): vol.All(
                     vol.Coerce(float), vol.Range(min=MIN_SPEED, max=MAX_SPEED)
                 ),
+                vol.Optional(
+                    CONF_INSTRUCTIONS,
+                    default=current.get(CONF_INSTRUCTIONS, DEFAULT_INSTRUCTIONS),
+                ): str,
             }
         )
 
