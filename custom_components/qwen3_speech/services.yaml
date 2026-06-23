@@ -1,0 +1,42 @@
+broadcast:
+  name: Broadcast (emotion-aware)
+  description: >-
+    Synthesize the message fully to a file first (offline, with emotion), then
+    play the finished file on the given media players. Use this instead of
+    tts.speak for long emotional broadcasts — instruct/emotion synthesis is slow
+    and HA's lazy TTS times out pyatv's stream reader on long clips.
+  fields:
+    message:
+      name: Message
+      description: Text to speak.
+      required: true
+      example: "早上好，主人。今天天气晴朗，祝您拥有美好的一天。"
+      selector:
+        text:
+          multiline: true
+    media_player_entity_id:
+      name: Media players
+      description: One or more media players to play on.
+      required: true
+      example: "media_player.zhu_wo_homepod_mini"
+      selector:
+        entity:
+          domain: media_player
+          multiple: true
+    voice:
+      name: Voice
+      description: Voice id (defaults to the integration's configured voice).
+      required: false
+      example: "Chelsie"
+      selector:
+        text:
+    instructions:
+      name: Emotion / instructions
+      description: >-
+        Emotion/style for instruct models. "auto" (default) picks an emotion from
+        the message content; or a natural-language instruction; empty = none.
+      required: false
+      default: "auto"
+      example: "用温柔、治愈的语气说话"
+      selector:
+        text:

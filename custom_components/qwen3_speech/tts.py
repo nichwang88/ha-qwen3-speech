@@ -44,7 +44,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Qwen3 TTS platform via config entry."""
-    async_add_entities([Qwen3TTSEntity(hass, config_entry)])
+    entity = Qwen3TTSEntity(hass, config_entry)
+    # Expose the entity so the `broadcast` service can synthesise offline
+    # (long instruct/emotion clips are too slow for HA's lazy TTS + pyatv).
+    hass.data.setdefault(DOMAIN, {}).setdefault(config_entry.entry_id, {})[
+        "tts_entity"
+    ] = entity
+    async_add_entities([entity])
 
 
 class Qwen3TTSEntity(TextToSpeechEntity):

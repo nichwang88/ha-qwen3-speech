@@ -126,6 +126,25 @@ data:
 
 > 说明：仅 instruct 模型（模型名含 `instruct`）会发送 `instructions`；普通 `qwen3-tts-flash` 会忽略此选项，行为不变。情感对整段文本统一生效。
 
+### 长情感播报：`qwen3_speech.broadcast` 服务（推荐用于音箱/HomePod）
+
+instruct 情感模型合成**长文本较慢**（十几秒），而 HA 的 TTS 是"边播边合成"，长音频会让 AirPlay/pyatv 的取流**超时**（`timed out reading from stream`，播不出）。
+
+`qwen3_speech.broadcast` 服务**先把整段离线合成成文件**（不连音箱、不会超时），**再播放现成文件**，彻底解决：
+
+```yaml
+service: qwen3_speech.broadcast
+data:
+  message: "早上好，主人。今天有雨，记得带伞。"
+  media_player_entity_id:
+    - media_player.zhu_wo_homepod_mini
+    - media_player.shu_fang_8
+  voice: "Chelsie"          # 可选，默认用集成配置的音色
+  instructions: "auto"      # 可选，默认 auto = 按内容自动选情感
+```
+
+> 短文本通知用 `tts.speak` 即可（够快）；**长播报（一段话以上）+ 情感** 用本服务。
+
 ### 语音识别（STT）
 
 STT 实体（`stt.qwen3_stt`）可用于：
