@@ -14,11 +14,14 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    AUTO_INSTRUCTIONS,
     CONF_API_KEY,
+    CONF_INSTRUCTIONS,
     CONF_SPEED,
     CONF_TTS_MODEL,
     CONF_VOICE,
     DASHSCOPE_API_URL,
+    DEFAULT_INSTRUCTIONS,
     DEFAULT_LANGUAGE,
     DEFAULT_SPEED,
     DEFAULT_TTS_MODEL,
@@ -29,6 +32,7 @@ from .const import (
     MIN_SPEED,
     SUPPORT_LANGUAGES,
     TTS_MAX_CHARS,
+    pick_emotion,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,6 +78,16 @@ class Qwen3TTSEntity(TextToSpeechEntity):
         return self._entry.data.get(CONF_SPEED, DEFAULT_SPEED)
 
     @property
+    def _default_instructions(self) -> str:
+        # "" = none, "auto" = pick emotion from content, or a fixed instruction.
+        return self._entry.data.get(CONF_INSTRUCTIONS, DEFAULT_INSTRUCTIONS)
+
+    @property
+    def _is_instruct_model(self) -> bool:
+        # Emotion/instruction control only applies to instruct models.
+        return "instruct" in self._tts_model.lower()
+
+    @property
     def default_language(self) -> str:
         """Return the default language."""
         return "zh"
@@ -86,12 +100,30 @@ class Qwen3TTSEntity(TextToSpeechEntity):
     @property
     def supported_options(self) -> list[str]:
         """Return list of supported options."""
-        return [CONF_VOICE, CONF_SPEED]
+        return [CONF_VOICE, CONF_SPEED, CONF_INSTRUCTIONS]
 
     @property
     def default_options(self) -> dict[str, Any]:
         """Return default options."""
-        return {CONF_VOICE: self._default_voice, CONF_SPEED: self._default_speed}
+        return {
+            CONF_VOICE: self._default_voice,
+            CONF_SPEED: self._default_speed,
+            CONF_INSTRUCTIONS: self._default_instructions,
+        }
+
+    def _resolve_instructions(self, options: dict[str, Any], message: str) -> str:
+        """Resolve the effective emotion/instruction for this synthesis.
+
+        Priority: per-call option > config default. Value "auto" => pick an
+        emotion from the message content. Only used for instruct models.
+        """
+        instructions = options.get(CONF_INSTRUCTIONS)
+        if instructions is None:
+            instructions = self._default_instructions
+        instructions = (instructions or "").strip()
+        if instructions.lower() == AUTO_INSTRUCTIONS:
+            return pick_emotion(message)
+        return instructions
 
     async def _transcode_to_mp3(self, audio: bytes) -> bytes | None:
         """Transcode audio (WAV) to MP3 via ffmpeg for reliable AirPlay/HomePod streaming.
@@ -152,6 +184,13 @@ class Qwen3TTSEntity(TextToSpeechEntity):
                 "language_type": language_type,
             },
         }
+
+        # Emotion / style control: only instruct models accept `instructions`.
+        if self._is_instruct_model:
+            instructions = self._resolve_instructions(options, message)
+            if instructions:
+                payload["input"]["instructions"] = instructions
+                _LOGGER.debug("TTS instructions: %s", instructions)
 
         headers = {
             "Authorization": f"Bearer {self._api_key}",
